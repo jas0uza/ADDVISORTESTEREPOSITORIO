@@ -1,0 +1,262 @@
+Descrição 
+
+	Criação de um programa para extração de informações que deverão ser disponibilizadas a agência Reguladora sobre a manutenção dos equipamentos, essa informações deverão ser exibidas de forma instantânea a base de dados.
+
+Conteúdo da Especificação
+
+
+1.	Detalhamento da Especificação funcional	2
+1.1.	Detalhes Sobre o Tipo de Desenvolvimento	2
+1.2.	Regras para o desenvolvimento:	2
+1.3.	Requisitos para o desenvolvimento:	3
+2.	Desenvolvimento:	3
+2.1.	Regras e condições para o desenvolvimento:	4
+3.	Pré-requisitos para o desenvolvimento:	9
+
+
+
+Aprovação do Usuário / Especificador	
+07/02/2014
+Jonas Gutierre Junior	Aprovação do Líder Técnico (On-Site)	
+___/___/____     
+
+
+Aprovação do Funcional - Cliente 	
+___/___/____     	Aprovação do Gerente - Cliente
+	 
+___/___/____     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1.	Detalhamento da Especificação funcional
+1.1.	Detalhes Sobre o Tipo de Desenvolvimento
+
+O objetivo deste desenvolvimento é criar um programa que extraia informações da manutenção dos locais de instalação das empresas do Grupo CCR, essas informações têm que ser disponibilizadas para a agência reguladora (ARTESP), essa comunicação deverá ser de forma online ou disponibilizada em uma base de dados externa ao SAP ECC.
+
+
+Definições sobre a máscara do local de instalação:
+
+➢	Estruturação dos níveis de codificação da EngelogTec:
+
+1.	Concessionária (1º Nível)
+ 
+O primeiro nível da estrutura de codificação para as Rodovias, válido para toda a estrutura de codificação criada, é composto por dois caracteres que representam a unidade de negócio correspondente. 
+
+Codificação: “AA-”
+
+AA – (Caracteres alfabéticos representativos da unidade)
+
+CÓDIGO	SISTEMA
+AB	AUTOBAN
+VO	VIAOESTE
+RA	RODOANEL
+PT	PONTE
+VL	VIALAGOS
+SV	SPVIAS
+RN	RODONORTE
+ND	NOVADUTRA
+
+
+ 
+2.	Sistemas (2º Nível)
+
+Os Sistemas representam o segundo nível dentro da estrutura de codificação, foram divididos em nove grupos, sendo que a codificação adotada para a classificação é composta por um caractere como apresentado a seguir e válida para todas as estruturas de codificação criadas.  
+
+
+CÓDIGO	SISTEMA
+1	AUTOMAÇÃO - ARRECADAÇÃO / BILHETAGEM
+2	ELÉTRICO
+3	COMUNICAÇÃO
+4	FISCALIZAÇÃO
+5	ITS – CONTROLE DE TRÁFEGO
+6	CLIMATIZAÇÃO
+7	AUXILIARES
+Codificação: “N-”
+
+N – (Caractere numérico representativo do sistema)
+
+Exemplo: AB-1- (“AutoBAn – “Automação - Arrecadação / Bilhetagem”)
+
+2.1	Estrutura para o Sistema de Automação
+
+
+3º NÍVEL (AAAA)
+
+Corresponde ao Subsistema.
+
+Exemplos: NVLA (Nível 1) 
+NVLB (Nível 2)
+CCAR (Centro de Controle Arrecadação)
+MIPE (Módulo de Informações do Pedágio)
+SIVE (Sistema de Indicador de Velocidade)
+DIDO (Dinheiro Duto)
+INTM (Intercomunicador)
+
+
+4º NÍVEL (XXXXXXX)
+
+Corresponde a Rodovia e o Estado pertencente.
+
+Exemplo: BR116SP (BR116 - NovaDutra em SP - São Paulo)
+
+Outros possíveis exemplos de codificação: SP348SP, SP280SP, BR101RJ 
+
+
+5º NÍVEL (XXX.XXX.XX)
+
+Corresponde a quilometragem e sentido na Rodovia.
+
+Exemplos: 318.944.SS (318 km, 944 m e Sentido Sul) 
+081.000.SS (081 km, 000 m e Sentido Sul)
+223.100.SL (223 km, 100 m e Sentido Leste)
+        
+
+6º NÍVEL (XXXXX)
+
+Corresponde a outro sub-sistema ou representação de um Local de Instalação equivalente ao equipamento a ser associado. 
+
+Exemplos: PA101 (Pista AVI) 
+                PA002 (Pista Manual)
+PA201 (Pista Auxiliar)
+
+
+7º NÍVEL (XXXXX) 
+
+Sub-local específico de Instalação dentro de outro local definido.
+
+Exemplos: M19CC (Câmera de classificação)
+
+
+
+1.2.	Requisitos para o desenvolvimento:
+
+Não se aplica.
+2.	Desenvolvimento:
+
+2.1.	Regras e condições para o desenvolvimento:
+
+Incluir no programa um critério para buscar as informações que serão processadas, inicialmente usar o código empresa e tipo de objeto técnico. Estes são os primeiros critérios de critério de busca (externo).
+
+ 
+CAMPOS: 	EMPRESA (Elemento de dados BURKS)
+			TP. OBJETO TÉCNICO (Elemento de dados EQART)	
+
+Atividade 1 - A partir deste critério de seleção EMPRESA, o programa deverá buscar o local de instalação raiz da árvore existe tabela IFLO, preenchendo o campo IFLO-BUKRS. Exemplo: Empresa 1400, Local raiz ‘AB’ e Empresa 1700, Local ‘RA’.
+
+Atividade 2 – Com todos os locais de instalação raiz identificados o programa deve fazer uma busca para considerar os locais de instalação de níveis 6 e 7, utilizando a função PM_HIERARCHY_CALL_LIGHT, campos:
+
+FUNCTIONAL_LOCATION = ‘IFLO-TPLNR’;
+SELECTION_DATE = data atual;
+SELECTION_TIME = hora atual;
+WITH_IFLO_HIER = ‘X’;
+LEVEL_DOWN = ‘99’;
+LEVEL_UP = ’99’.
+
+Manter apenas os registros onde o campo IFLO_TAB-LEVEL for igual a ‘6’ ou ‘7’.
+
+Atividade 3 – Com os locais restantes ELIMINAR os locais que NÃO estiverem com valores iguais aos informados no critério de seleção TP. OBJETO TÉCNICO campo IFLO-EQART.
+
+Com os locais restantes, buscar todas as notas criadas no ambiente, considerando as seguintes tabelas e campos citados abaixo, para buscar as informações e montar a estrutura que será enviada no formato do arquivo abaixo.
+
+ 
+CAMPOS DA ESTRUTURA 1
+
+NOME_REDUZIDO_RODOVIA	= Considerar a informação em negrito do local de instalação: RA-5-CBOX-SP021SP-004.700.SE-CB011;
+
+NUM_KM = Considerar a informação em negritro do local de instalação: RA-5-CBOX-SP021SP-004.700.SE-CB011;
+
+COMPLEMENTO = Considerar a informação do local de instalação: RA-5-CBOX-SP021SP-004.700.SE-CB011;
+	
+SENTIDO = Considerar a informação do local de instalação: RA-5-CBOX-SP021SP-004.700.SE-CB011;
+
+MARGINAL = Usar campo IFLO-TPLNR (valor interno), campo AUSP-ATINN = ‘MARGINAL’ na busca na tabela AUSP e considerar no resultado o valor do campo AUSP-ATWRT.  
+
+REGISTRO ARTESP = Usar campo IFLO-TPLNR (valor interno), campo AUSP-ATINN = ‘CODIGO_ARTESP’ na busca na tabela AUSP e considerar no resultado o valor do campo AUSP-ATWRT;
+
+NUM_CHAMADO_CONCESSIONARIA = VIQMEL-QMNUM;
+
+COD_TIPO_PROBL_CONCESSIONARIA = VIQMEL-QMCOD;
+
+DESC_TIPO_PROBL_CONCESSIONARIA = V_QPCD_KAT-KURZTEXT;
+
+DESC_PROBLEMA = VIQMEL-QMTXT;
+
+DATA_INICIO	= VIQMEL-QMDAT;
+
+HORA_INICIO	= VIQMEL-MZEIT;
+
+STATUS = JEST-STAT (considerar status se ativo I0070, I0068 = ABERTO, considerar status se ativo E0005 = CANCELADO e considerar status se ativo I0072 = ENCERRADO);
+
+ID_LOGIN_PROBLEMA	= VIQMEL-ERNAM;
+
+COD_TIPO_SOL_CONCESSIONARIA = VIQMMA-MNCOD;
+	
+DESC_TIPO_SOL_CONCESSIONARIA = V_QPCD_KAT-KURZTEXT;
+
+DESC_SOLUCAO = VIQMMA-MATXT;
+
+DATA_SOLUCAO = VIQMEL-AUSBS;
+
+HORA_SOLUCAO = VIQMEL-AUZTB;
+
+ID_LOGIN_SOLUCAO	= JCDS-USNAM, considerar o objeto técnico da nota, campo JCDS-STAT = ‘I0072’ e JCDS-INACT = ‘ ’;
+
+DATA_MODIFICACAO	= JDDS-UDATE, considerar o objeto técnico da nota, campo JCDS-STAT = ‘I0072’ e JCDS-INACT = ‘ ’;
+
+HORA_MODIFICACAO = JCDS-UTIME, considerar o objeto técnico da nota, campo JCDS-STAT = ‘I0072’ e JCDS-INACT = ‘ ’;
+
+
+
+CAMPOS DA ESTRUTURA 2
+
+Considerar o código MPOS-ILOAN igual ao IFLO-ILOAN para buscar os planos relacionados aos locais.
+
+ 
+
+NOME_REDUZIDO_RODOVIA	= Considerar a informação em negrito do local de instalação: RA-5-CBOX-SP021SP-004.700.SE-CB011;
+
+NUM_KM = Considerar a informação em negrito do local de instalação: RA-5-CBOX-SP021SP-004.700.SE-CB011;
+
+COMPLEMENTO = Considerar a informação do local de instalação: RA-5-CBOX-SP021SP-004.700.SE-CB011;
+	
+SENTIDO = Considerar a informação do local de instalação: RA-5-CBOX-SP021SP-004.700.SE-CB011;
+
+MARGINAL = Usar campo IFLO-TPLNR (valor interno), campo AUSP-ATINN = ‘MARGINAL’ na busca na tabela AUSP e considerar no resultado o valor do campo AUSP-ATWRT.  
+
+REGISTRO ARTESP = Usar campo IFLO-TPLNR (valor interno), campo AUSP-ATINN = ‘CODIGO_ARTESP’ na busca na tabela AUSP e considerar no resultado o valor do campo AUSP-ATWRT;
+	
+NUM_PLANO_CONCESSIONARIA = MPOS-WAPOS;
+
+DESC_PLANO	= MPLA-WPTXT;
+
+PERIODO = Com o número do plano campo MHIS-WARPL buscar as solicitações campo MHIS-ABNUM, nesta tabela pode também resgatar qual a o pacote da estratégia campo buscar MHIS-ZAEHL, identificar qual é a estratégia e buscar o número de dias desse pacote campo (RMIPM-ZYKL);
+
+UNIDADE = T351P-ZEIEH, buscar a solicitação transação IP10, identificar qual é pacote da estratégia e conseguentimento o número de dias do ciclo campo (V_T351P-ZEIEH);
+
+DATA_ULTIMA_MANUTENCAO = considerar a última ordem (campo CAUFVD-LAUFN) existente na solicitação atual, com isso pegar a data de ínicio ordem, campo AFIH-ADUHR;
+
+DATA_ATUALIZACAO = MPLA-AEDAT;
+
+
+
